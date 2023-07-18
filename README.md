@@ -8,7 +8,7 @@ With this access model, the service principal provides initial authorisation to 
 
 This results in a fairly simple architectural model being required and has the additional advantage that the majority of the resources involved are owned and managed by the external organisation, reducing the management and cost burden on the CSOC team.
 
-# Table of Content
+## Table of Content
 
 - [Introduction](#introduction)
 - [High Level Design](#high-level-design)
@@ -29,7 +29,7 @@ This results in a fairly simple architectural model being required and has the a
 - [Glossary of Terms](#glossary-of-terms)
 - [Resources](#resources)
 
-# Introduction
+## Introduction
 
 A centralised identity management team within NHSE CSOC is responsible for managing the Active Directory that devices across many distributed NHS organisations (e.g., Trusts) use to authenticate users and register end-user devices against.
 
@@ -39,28 +39,28 @@ The CCoE was asked to assist the security team in creating a process to allow th
 
 The devices are segregated by organisation within MDE by the use of Device Groups, and a core tenant of the final solution was that the extracts MUST be scoped to just the alerts from devices in a specific group (i.e., the devices managed by the organisation querying the data), with no risk of data from the other organisations also being accessible.
 
-# High Level Design
+## High Level Design
 
 The solution is designed to export MDE Alerts from one tenant and push them to another. For simplicity’s sake these are referred to as the “Identity Tenant”, where MDE exists, and the “Trust Tenant”, where the Function App exists and probably, but not necessarily, where alerts will be pushed to.
 
 ![Solution Diagram](/images/Diagram.png)
 
-## Identity Tenant Resources
+### Identity Tenant Resources
 
 On the assumption that the Identity Tenant already exists and that MDE is deployed into it with devices grouped by appropriate end-user Device Groups, very minimal change is required in the tenant to deploy this solution.
 In fact, the only resource required is an App Registration service principal with relevant API permissions assigned to it:
 
 ![Service Principal Permissions](/images/SPN_Permissions.png)
 
-# Trust Tenant
+## Trust Tenant
 
 The bulk of the solution exists within the Trust Tenant and is comprised of the following resources, most of which are automatically created as part of the deployment process defined below.
 
-## Storage Account Table
+### Storage Account Table
 
 Required internally by the Function App to store session state information and also used to store the last successful query time.
 
-## App Service Plan
+### App Service Plan
 
 Consumption plan is sufficient but does not allow creation of private endpoints, which means that public networking must be used to connect to the storage account.
 
@@ -68,7 +68,7 @@ As neither of the function app and the storage account contain sensitive data th
 
 Having said this, the solution was developed and tested using a Linux Y1 consumption-based plan.
 
-## Function App
+### Function App
 
 The main functionality of the solution is provided by a Python 3.9 function with three component parts:
 
@@ -78,17 +78,17 @@ The main functionality of the solution is provided by a Python 3.9 function with
 
 > :heavy_exclamation_mark: Note that the function app and storage account do not contain sensitive data, so public networking is not a significant security risk. However, it is recommended to use a paid service plan to implement private endpoints if possible.
 
-## App Settings
+### App Settings
 
 A number of App Settings are used in the function app to store run-time variables, such as tenant and client Ids, the storage account name etc.
 
-## Log Analytics Workspace
+### Log Analytics Workspace
 
 Used to store function logging data and, in default deployment, the alerts extracted from MDE. This must be created in advance of running the deployment and can be a pre-existing workspace.
 
-# Deployment Guidelines
+## Deployment Guidelines
 
-## Prerequisites
+### Prerequisites
 
 1. Register **Microsoft.Web** resource provider, see: [Register resource provider](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types#azure-portal)
 
@@ -96,7 +96,7 @@ Used to store function logging data and, in default deployment, the alerts extra
 
 2. Azure User with Owner or Contributor right to the subscription that the Function App will be deployed into.
 
-## Deploy Code
+### Deploy Code
 
 The deployment can be built using a PowerShell script available in this repo.
 The following variables relating to the Identity and Trust tenant environments need to be set in the PowerShell code:
@@ -127,7 +127,7 @@ The following variables relating to the Identity and Trust tenant environments n
 |$FunctionConfigStorageContainer |  "functionlogging"|
 |$filepath|   "Python-Functions.zip"|
 
-## Installation Steps
+### Installation Steps
 
 1. Clone the repo to your local machine or Azure Cloud Shell by running the following command:
 
@@ -160,7 +160,7 @@ git clone https://github.com/NHSDigital/ccoe-mde.git
 
 ![Sucessful installation](/images/SucessfulInstallation.png)
 
-# Azure Function App Authentication
+## Azure Function App Authentication
 
 1. Go to the *Azure* portal and search for Function App, click on the function that just deployed (serverless-python-function-xxxxxxxxx).
 
@@ -186,7 +186,7 @@ git clone https://github.com/NHSDigital/ccoe-mde.git
 
 ![Azure Portal Azure Function Authentication](/images/AzureFunctionAppAuthentication.png)
 
-# Deployment Checklist
+## Deployment Checklist
 
 | Task                                                                                   | Completed |
 |----------------------------------------------------------------------------------------|-----------|
@@ -197,7 +197,7 @@ git clone https://github.com/NHSDigital/ccoe-mde.git
 | Authenticate the Azure Function using the device code shown on the function app logs. | <a href="#" onclick="toggleCheckbox('task5');return false;"><input type="checkbox" id="task5" name="task5" value="value5"></a> |
 | After 30 minutes check if the new tables **DefenderRawAlert_CL** and **Heartbeat_CL** were created in the specified Log Analytics Workspace. | <a href="#" onclick="toggleCheckbox('task6');return false;"><input type="checkbox" id="task6" name="task6" value="value6"></a> |
 
-# Future Roadmap
+## Future Roadmap
 
 - Amend Deployment Script to allow Python code to be redeployed into existing Function App.
 
@@ -209,7 +209,7 @@ git clone https://github.com/NHSDigital/ccoe-mde.git
 
 - Add alternative Alert output formats and locations (e.g. Storage Account, Event Hub, AWS S3 bucket etc).
 
-# Glossary of Terms
+## Glossary of Terms
 
 | Term / Abbreviation | What it stands for                            |
 |---------------------|-----------------------------------------------|
@@ -227,7 +227,7 @@ git clone https://github.com/NHSDigital/ccoe-mde.git
 | UEBA                | User and Entity Behaviour Analytics           |
 | RBAC                | Role-based access control                     |
 
-# Resources
+## Resources
 
 - [Microsoft Graph API - Security List Alerts v2](https://learn.microsoft.com/en-us/graph/api/security-list-alerts_v2?view=graph-rest-1.0&tabs=http)
 - [Azure Durable Functions Overview](https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-overview?tabs=csharp-inproc)
