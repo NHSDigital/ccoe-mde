@@ -35,7 +35,7 @@ $FunctionConfigStorageContainer = "functionlogging"
 $FunctionConfigLoggingLevel = "4" # Set this to value in range 1-5 where 1 logs everything and 5 logs only most significant output
 $filepath = "Python-Functions.zip"
 
-## Determine if uswr needs to be prompted to refresh their Azure login
+## Determine if user needs to be prompted to refresh their Azure login
 $Prompt = "Do you need to refresh your Azure login before running the script (No, if already correctly logged in or if running in Cloud Shell)?"
 $Choices = [System.Management.Automation.Host.ChoiceDescription[]] @("&Yes", "&No", "&Cancel")
 $Default = 1
@@ -50,7 +50,10 @@ switch ($Choice) {
         If (Get-AzContext) { Disconnect-AzAccount }
         Connect-AzAccount -Tenant $tenantId -Subscription $subscriptionId
     }
-    1 { Write-Host "Using existing Azure login" }
+    1 {
+        Write-Host "Using existing Azure login and subscriptionId: $subscriptionId"
+        Set-AzContext -Subscription $subscriptionId
+    }
     2 { exit 1 }
 }
 
@@ -66,6 +69,14 @@ if (!(Get-Module -Name Az -ListAvailable)) {
 }
 else {
     Write-Output "Required modules installed"
+}
+
+## Check if version of Az.Websites module that causes publishing isues is instaled, and replace if necessary:
+if ((Get-installedModule -Name Az.Websites -MinimumVersion 3.0 -ErrorAction SilentlyContinue).length -gt 0) {
+    Write-Output "Az.Websites module version 3.x is installed, replacing with version 2.15.0"
+    Remove-Module -Name Az.Websites -ErrorAction SilentlyContinue
+    Install-Module -Name Az.Websites -RequiredVersion 2.15.0 -Force -ErrorAction SilentlyContinue
+    Import-module -Name Az.Websites -RequiredVersion 2.15.0 -Force
 }
 
 ## Compress python functions files
@@ -307,4 +318,3 @@ Write-Output "***************************************************************"
 Write-Output "*           Azure Function app deployed successfully.         *"
 Write-Output "*   Open the Function App in the Azure Portal to authenticate *"
 Write-Output "***************************************************************"
-

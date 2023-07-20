@@ -8,7 +8,7 @@ With this access model, the service principal provides initial authorisation to 
 
 This results in a fairly simple architectural model being required and has the additional advantage that the majority of the resources involved are owned and managed by the external organisation, reducing the management and cost burden on the CSOC team.
 
-## Table of Content
+## Table of Contents
 
 - [Introduction](#introduction)
 - [High Level Design](#high-level-design)
@@ -43,14 +43,14 @@ The devices are segregated by organisation within MDE by the use of Device Group
 
 The solution is designed to export MDE Alerts from one tenant and push them to another. For simplicity’s sake these are referred to as the “Identity Tenant”, where MDE exists, and the “Trust Tenant”, where the Function App exists and probably, but not necessarily, where alerts will be pushed to.
 
-![Solution Diagram](/images/Diagram.png)
+![Solution Diagram](./images/Diagram.png)
 
 ### Identity Tenant Resources
 
 On the assumption that the Identity Tenant already exists and that MDE is deployed into it with devices grouped by appropriate end-user Device Groups, very minimal change is required in the tenant to deploy this solution.
 In fact, the only resource required is an App Registration service principal with relevant API permissions assigned to it:
 
-![Service Principal Permissions](/images/SPN_Permissions.png)
+![Service Principal Permissions](./images/SPN_Permissions.png)
 
 ## Trust Tenant
 
@@ -84,7 +84,9 @@ A number of App Settings are used in the function app to store run-time variable
 
 ### Log Analytics Workspace
 
-Used to store function logging data and, in default deployment, the alerts extracted from MDE. This must be created in advance of running the deployment and can be a pre-existing workspace.
+Used to store the alerts extracted from MDE, unless an Event Hub is specified instead. Also used to capture Heartbeat messages from the function app, unless this option is turned off in the [App Settings](#app-settings).
+
+This Workspace must be created in advance of running the deployment and can be a pre-existing workspace.
 
 ## Deployment Guidelines
 
@@ -103,88 +105,126 @@ The following variables relating to the Identity and Trust tenant environments n
 
 | Variable name | Description                           |
 |---------------------|-----------------------------------------------|
-|$tenantId | Add the Tenant ID where the resources will be deployed |
+|$tenantId | Add the Tenant ID where the resources will be deployed|
 |$subscriptionId | Add the Subscription ID where the resources will be deployed|
-|$FunctionConfigMDETenantId  |Add MDE Tenant ID|
-|$FunctionConfigMDEClientAppId | Add MDE Client ID |
-|$LogAnalyticsWorkspaceResourceGroupName| Add the Log analytics Workspace Resource Group name|
-|$LogAnalyticsWorkspaceName |Add the Log analytics Workspace name|
-|$FunctionConfigLogAnalyticsKey |Holds the Log analytics primary key|
-|$FunctionConfigLogAnalyticsWorkspaceId |Holds the Log analytics Id|
-|$randomIdentifier |  Get-Random|
-|$location  | "uksouth"|
-|$resourceGroup  | "azure-functions-rg-$randomIdentifier"|
-|$tag |  @{application  "function-app-consumption-python" }|
-|$storage |  "funcappsaccount$randomIdentifier"|
-|$functionApp  | "serverless-python-function-$randomIdentifier"|
-|$skuStorage  | "Standard_LRS"|
-|$functionsVersion  | "4"|
-|$pythonVersion  | "3.9" #Allowed values: 3.7, 3.8, and 3.9|
-|$FunctionConfigSend_heartbeat   | "True"|
-|$FunctionConfigUse_last_saved_time |  "True"|
-|$FunctionConfigLogAnalyticsTableName  | "DefenderRawAlert"|
-|$FunctionConfigStorageTable |  "fnautomationmdeCachedValues"|
-|$FunctionConfigStorageContainer |  "functionlogging"|
-|$filepath|   "Python-Functions.zip"|
+|$FunctionConfigMDETenantId |Add Central MDE Tenant ID|
+|$FunctionConfigMDEClientAppId | Add Central MDE Client ID |
+|$FunctionConfigAlertTargetType | Set this to either LogAnalytics or EventHub |
+|$AlertTargetResourceGroupName| Resource Group name where the target Log Analytics Workspace or Event Hub reside in your local tenant|
+|$LogAnalyticsWorkspaceName | Log Analytics Workspace name used to look up workspace id and key if workspace is to be used as the alert target or for sending Heartbeat events to|
+|$FunctionConfigEventHubNamespace | Event Hub Namespace name if Event Hub is to be used as the alert target, otherwise blank|
+|FunctionConfigEventHubAccessKeyName | Event Hub Access Key Name - can be namespace root or hub-specific - key will be looked up by the script|
+|$randomIdentifier | Random number appended to resources created by this script to provide uniqueness|
+|$location | "uksouth"|
+|$resourceGroup | "azure-functions-rg-$randomIdentifier" - modify as required|
+|$tag | @{application  "function-app-consumption-python" } - modify as required|
+|$storage | "funcappsaccount$randomIdentifier" - modify as required|
+|$functionApp | "serverless-python-function-$randomIdentifier" - modify as required|
+|$skuStorage | "Standard_LRS"|
+|$functionsVersion | "4"|
+|$pythonVersion | "3.9" #Allowed values: 3.7, 3.8, and 3.9|
+|$FunctionConfigSendHeartbeatToLogAnalytics | True or False, default is True|
+|$FunctionConfigUse_last_saved_time | True or False, default is True|
+|$FunctionConfigLogAnalyticsTableName | "DefenderRawAlert"|
+|$FunctionConfigStorageTable | "fnautomationmdeCachedValues"|
+|$FunctionConfigStorageContainer | "functionlogging"|
+|$FunctionConfigLoggingLevel | "3" # Set this to value in range 1-5 where 1 logs everything and 5 logs only most significant output|
+|$filepath| "Python-Functions.zip"|
 
 ### Installation Steps
 
-1. Clone the repo to your local machine or Azure Cloud Shell by running the following command:
+1. While the installation can be carried out from a PowerShell session in a local workstation, it is recommended to use Azure Cloud Shell, which is available from the Azure Portal. This provides a Linux-based environment with all the tools required to run the installation script and avoids security issues that can occur when running locally.
+
+1. To access the cloud shell, click on the icon in the top-right corner of the Azure Portal and then select **PowerShell**:
+
+![Cloud Shell](.\images\Azure-CloudShell-Launch.png)
+
+1. Create a suitable working directory and navigate to it. This can be done in Cloud Shell by entering the following command:
+
+```shell
+mkdir ccoe-mde
+cd ccoe-mde
+```
+
+1. Clone the repo to your local machine or, preferably, Azure Cloud Shell by running the following command:
 
 ```shell
 git clone https://github.com/NHSDigital/ccoe-mde.git
 ```
 
-2. Edit the variables in the file **deployFunctionApp.ps1** located inside the scripts folder, using your preferred text editor, according to your Azure environment. The variables to edit are:
+Note: to paste into the Cloud Shell from a Windows computer, click **Ctrl+Shift+V**.
 
-| Variable | Description |
-| :------- | :---------- |
-| $tenantId | Tenant ID where the resources will be deployed |
-| $subscriptionId | Subscription ID where the resources will be deployed |
-| $FunctionConfigMDETenantId | MDE Tenant ID |
-| $FunctionConfigMDEClientAppId | MDE Client ID |
-| $LogAnalyticsWorkspaceResourceGroupName | Log analytics Resource Group name |
-| $LogAnalyticsWorkspaceName | Log analytics Workspace name |
+1. Navigate to the **scripts** folder inside the cloned repo:
+  
+  ```shell
+  cd ./ccoe-mde/scripts
+  ```
 
-3. Once edited, open PowerShell and navigate to the **scripts** folder inside the cloned repo and Run the script.
+1. Edit the denoted variables in the file **deployFunctionApp.ps1** located inside the scripts folder, using your preferred text editor, according to your local Azure environment. In Cloud Shell this can be done by entering the following command:
+
+```shell
+code ./deployFunctionApp.ps1
+```
+
+To Save and Exit the file in Cloud Shell, press **Ctrl+S** and then **Ctrl+Q**, or hover the mouse pointer in the top-right corner of the Cloud Shell window and click on the required menu options.
+
+![Cloud Shell Save and Exit](./images/Azure-CloudShell-SaveScript.png)
+
+1. Once edited, navigate to the **scripts** folder inside the cloned repo and Run the script:
 
 ```shell
   .\deployFunctionApp.ps1
 ```
 
-4. A browser window will pop up requesting authentication into Azure Portal to start the deployment of the required resources.
+1. You will be asked if you want to refresh your Azure login - click **No** if running in the Cloud Shell, and click **Yes** or **No** as required if running locally.
 
-![Azure Portal Authentication](/images/AzurePortalAuthentication.png)
+1. If you click Yes, a browser window will pop up requesting authentication into the Azure Portal to start the deployment of the required resources.
 
-5. Wait for the deployment process to complete.
+![Azure Portal Authentication](./images/AzurePortalAuthentication.png)
 
-![Sucessful installation](/images/SucessfulInstallation.png)
+1. Wait for the deployment process to complete.
+
+![Sucessful installation](./images/SucessfulInstallation.png)
+
+> :heavy_exclamation_mark: Note if the following error is displayed, it is most likely that the version of the Az.Websites PowerShell module is not compatible with the version of PowerShell being used. To resolve this, run the following command in the Cloud Shell to install a known good version of the module, and then run the script again:
+
+```shell
+  Install-Module -Name Az.Websites -RequiredVersion 2.15.0
+```
+
+Once the script has completed successfully, the module can be removed again using the following command:
+
+```shell
+  Uninstall-Module -Name Az.Websites -RequiredVersion 2.15.0
+```
 
 ## Azure Function App Authentication
 
 1. Go to the *Azure* portal and search for Function App, click on the function that just deployed (serverless-python-function-xxxxxxxxx).
 
-![Azure Portal Search Azure Function App](/images/AzurePortalSearch.png)
+![Azure Portal Search Azure Function App](./images/AzurePortalSearch.png)
 
-2. In the Function App's overview page, click on the **Functions** in the Functions section on the left-hand side.
+1. In the Function App's overview page, click on the **Functions** in the Functions section on the left-hand side.
 
-![Azure Portal Azure Function App Menu](/images/AzureFunctionAppMenu.png)
+![Azure Portal Azure Function App Menu](./images/AzureFunctionAppMenu.png)
 
-3. Select the Timer function named **"timer_Python_LogAnalytics"**.
+1. Select the Timer function named **"timer_Python_LogAnalytics"** (Note: It can take up to a minute after running the deployment script for the functions to appear in this screen).
 
-![Azure Portal Azure Function App Fuctions](/images/AzureFunctionAppFunctions.png)
+![Azure Portal Azure Function App Fuctions](./images/AzureFunctionAppFunctions.png)
 
-4. Click on the **Monitor** in the Developer section.
+1. Click on the **Monitor** in the Developer section.
 
-![Azure Portal Azure Function App Monitor](/images/AzureFunctionAppMonitor.png)
+![Azure Portal Azure Function App Monitor](./images/AzureFunctionAppMonitor.png)
 
-5. Click on **Logs** and wait for the logs to update (it might take a few minutes).
+1. Click on **Logs** and wait for the logs to update (it might take a few minutes).
 
-![Azure Portal Azure Function App Log](/images/AzureFunctionAppMonitorLog.png)
+![Azure Portal Azure Function App Log](./images/AzureFunctionAppMonitorLog.png)
 
-6. To authenticate the Azure Function, click on the following URL <https://microsoft.com/devicelogin> add the code shown in the **logs** and log in using a user credential that has RBAC permission in the MDE environment.
+1. To authenticate the Azure Function, click on the following URL <https://microsoft.com/devicelogin> add the code shown in the **logs** and log in using a user credential that has RBAC permission in the MDE environment.
 
-![Azure Portal Azure Function Authentication](/images/AzureFunctionAppAuthentication.png)
+![Azure Portal Azure Function Authentication](./images/AzureFunctionAppAuthentication.png)
+
+1. Once authenticated, the Azure Function will start to send logging information to the Monitor page on every 5 minute mark, and also send corresponding Heartbeat events to the Log Analytics Workspace unless this option is turned off in the App Configuration Settings.
 
 ## Deployment Checklist
 
