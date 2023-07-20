@@ -10,12 +10,16 @@ $FunctionConfigMDEClientAppId = "<Add MDE Client ID>" # MDE SPN Client ID
 
 # Alert Target Type can be set to either LogAnalytics or EventHub
 $FunctionConfigAlertTargetType = "LogAnalytics" # Set this to either LogAnalytics or EventHub - these targets must exist in the same tenant as the function app and be present before this script is run
-$AlertTargetResourceGroupName = "<Add Resource Group name>" # Add Resource Group name where the target Log Analytics Workspace or Event Hub reside in your local tenant
+
+# Details of the target Log Analytics Workspace
+$LogAnalyticsResourceGroupName = "<Add Resource Group name>" # Add Resource Group name where the target Log Analytics Workspace or Event Hub reside in your local tenant
 $LogAnalyticsWorkspaceName = "<Add Log analytics workspace name>" # Log Analytics Workspace name used to look up workspace id and key if workspace is to be used as the alert target or for sending Heartbeat events to
 
-$FunctionConfigEventHubNamespace = "<Add Event Hub Namespace name>" # Add Event Hub Namespace name if Alert Target is Event Hub, otherwise leave blank
-$FunctionConfigEventHubName = "<Add Event Hub name>" # Add Event Hub name if Alert Target is Event Hub, otherwise leave blank
-$FunctionConfigEventHubAccessKeyName = "RootManageSharedAccessKey" # Add Event Hub Access Key Name - can be namespace root or hub-specific
+# Details of the target Event Hub
+$EventHubResourceGroupName = "<Add Resource Group name or leave blank>" # Add Resource Group name where the target Event Hub resides in your local tenant, otherwise leave blank
+$FunctionConfigEventHubNamespace = "<Add Event Hub Namespace name or leave blank>" # Add Event Hub Namespace name if Alert Target is Event Hub, otherwise leave blank
+$FunctionConfigEventHubName = "<Add Event Hub name or leave blank>" # Add Event Hub name if Alert Target is Event Hub, otherwise leave blank
+$FunctionConfigEventHubAccessKeyName = "<Access Key name or leave blank>" # Add Event Hub Access Key Name - can be namespace root or hub-specific
 
 # Remaining variables can be left as default unless there are specific reasons to change them
 $randomIdentifier = Get-Random -Maximum 9999
@@ -124,11 +128,11 @@ else {
 ## Can be hard coded if in a different tenant or user login used to run this script does not have access to these details
 $FunctionConfigLogAnalyticsKeyValue = "" # Value will be read from the environment
 $FunctionConfigEventHubAccessKeyValue = "" # Value will be read from the environment
-if (Get-AzResourceGroup -Name $AlertTargetResourceGroupName -ErrorAction SilentlyContinue) {
+if (Get-AzResourceGroup -Name $LogAnalyticsResourceGroupName -ErrorAction SilentlyContinue) {
     # If a Log Analytics workspace name has been specified, look up the key for it:
     if ($LogAnalyticsWorkspaceName.Length -gt 0) {
-        $FunctionConfigLogAnalyticsKeyValue = "$($(Get-AzOperationalInsightsWorkspaceSharedKeys -ResourceGroupName $AlertTargetResourceGroupName -Name $LogAnalyticsWorkspaceName).PrimarySharedKey)"# Log Analytics Primary key
-        $FunctionConfigLogAnalyticsWorkspaceId = "$($(Get-AzOperationalInsightsWorkspace -ResourceGroupName $AlertTargetResourceGroupName -Name $LogAnalyticsWorkspaceName).CustomerId)" # LAW ID to ingest the alerts
+        $FunctionConfigLogAnalyticsKeyValue = "$($(Get-AzOperationalInsightsWorkspaceSharedKeys -ResourceGroupName $LogAnalyticsResourceGroupName -Name $LogAnalyticsWorkspaceName).PrimarySharedKey)"# Log Analytics Primary key
+        $FunctionConfigLogAnalyticsWorkspaceId = "$($(Get-AzOperationalInsightsWorkspace -ResourceGroupName $LogAnalyticsResourceGroupName -Name $LogAnalyticsWorkspaceName).CustomerId)" # LAW ID to ingest the alerts
 
         # Check workspace details were read successfully
         if ($FunctionConfigLogAnalyticsKeyValue.length -eq 0) {
@@ -143,13 +147,13 @@ if (Get-AzResourceGroup -Name $AlertTargetResourceGroupName -ErrorAction Silentl
     }
 
     # If an Event Hub name has been specified, look up the access key for it:
-    if ($FunctionConfigEventHubName.Length -gt 0) {
-        $FunctionConfigEventHubAccessKeyValue = "$($(Get-AzEventHubKey -ResourceGroupName $AlertTargetResourceGroupName -NamespaceName $FunctionConfigEventHubNamespace -EventHubName $FunctionConfigEventHubName -Name $FunctionConfigEventHubAccessKeyName -ErrorAction SilentlyContinue).PrimaryKey)" # Event Hub Primary key
+    if ($FunctionConfigEventHubName.Length -gt 0 -and $FunctionConfigAlertTargetType -eq "EventHub") {
+        $FunctionConfigEventHubAccessKeyValue = "$($(Get-AzEventHubKey -ResourceGroupName $EventHubResourceGroupName -NamespaceName $FunctionConfigEventHubNamespace -EventHubName $FunctionConfigEventHubName -Name $FunctionConfigEventHubAccessKeyName -ErrorAction SilentlyContinue).PrimaryKey)" # Event Hub Primary key
 
         # Check Event Hub details were read successfully and try reading from namespace level if not
         if ($FunctionConfigEventHubAccessKeyValue.length -eq 0) {
             Write-Information "The Event Hub Access Key Value could not be read - try reading Event Hub Namespace Access Key Value instead"
-            $FunctionConfigEventHubAccessKeyValue = "$($(Get-AzEventHubKey -ResourceGroupName $AlertTargetResourceGroupName -NamespaceName $FunctionConfigEventHubNamespace -Name $FunctionConfigEventHubAccessKeyName -ErrorAction SilentlyContinue).PrimaryKey)"
+            $FunctionConfigEventHubAccessKeyValue = "$($(Get-AzEventHubKey -ResourceGroupName $EventHubResourceGroupName -NamespaceName $FunctionConfigEventHubNamespace -Name $FunctionConfigEventHubAccessKeyName -ErrorAction SilentlyContinue).PrimaryKey)"
             
             if ($FunctionConfigEventHubAccessKeyValue.length -eq 0) {
                 Write-Error "The Event Hub Namespace Access Key Value could not be read"
@@ -167,7 +171,7 @@ if (Get-AzResourceGroup -Name $AlertTargetResourceGroupName -ErrorAction Silentl
     }
 }
 else {
-    Write-Error "The Log Analytics resource group does not exist: $AlertTargetResourceGroupName"
+    Write-Error "The Log Analytics resource group does not exist: $LogAnalyticsResourceGroupName"
     exit 1
 }
 
