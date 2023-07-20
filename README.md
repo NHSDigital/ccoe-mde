@@ -140,18 +140,18 @@ The following variables relating to the Identity and Trust tenant environments n
 
 1. While the installation can be carried out from a PowerShell session in a local workstation, it is recommended to use Azure Cloud Shell, which is available from the Azure Portal. This provides a Linux-based environment with all the tools required to run the installation script and avoids security issues that can occur when running locally.
 
-1. To access the cloud shell, click on the icon in the top-right corner of the Azure Portal and then select **PowerShell**:
+2. To access the cloud shell, click on the icon in the top-right corner of the Azure Portal and then select **PowerShell**:
 
-![Cloud Shell](.\images\Azure-CloudShell-Launch.png)
+![Cloud Shell](./images/Azure-CloudShell-Launch.png)
 
-1. Create a suitable working directory and navigate to it. This can be done in Cloud Shell by entering the following command:
+3. Create a suitable working directory and navigate to it. This can be done in Cloud Shell by entering the following command:
 
 ```shell
 mkdir ccoe-mde
 cd ccoe-mde
 ```
 
-1. Clone the repo to your local machine or, preferably, Azure Cloud Shell by running the following command:
+4. Clone the repo to your local machine or, preferably, Azure Cloud Shell by running the following command:
 
 ```shell
 git clone https://github.com/NHSDigital/ccoe-mde.git
@@ -159,13 +159,13 @@ git clone https://github.com/NHSDigital/ccoe-mde.git
 
 Note: to paste into the Cloud Shell from a Windows computer, click **Ctrl+Shift+V**.
 
-1. Navigate to the **scripts** folder inside the cloned repo:
+5. Navigate to the **scripts** folder inside the cloned repo:
   
   ```shell
   cd ./ccoe-mde/scripts
   ```
 
-1. Edit the denoted variables in the file **deployFunctionApp.ps1** located inside the scripts folder, using your preferred text editor, according to your local Azure environment. In Cloud Shell this can be done by entering the following command:
+6. Edit the denoted variables in the file **deployFunctionApp.ps1** located inside the scripts folder, using your preferred text editor, according to your local Azure environment. In Cloud Shell this can be done by entering the following command:
 
 ```shell
 code ./deployFunctionApp.ps1
@@ -175,21 +175,21 @@ To Save and Exit the file in Cloud Shell, press **Ctrl+S** and then **Ctrl+Q**, 
 
 ![Cloud Shell Save and Exit](./images/Azure-CloudShell-SaveScript.png)
 
-1. Once edited, navigate to the **scripts** folder inside the cloned repo and Run the script:
+7. Once edited, navigate to the **scripts** folder inside the cloned repo and Run the script:
 
 ```shell
   .\deployFunctionApp.ps1
 ```
 
-1. You will be asked if you want to refresh your Azure login - click **No** if running in the Cloud Shell, and click **Yes** or **No** as required if running locally.
+8. You will be asked if you want to refresh your Azure login - click **No** if running in the Cloud Shell, and click **Yes** or **No** as required if running locally.
 
 ![Azure Login Refresh](./images/Azure-CloudShell-ConfirmAzLogin.png)
 
-1. If you click Yes, a browser window will pop up requesting authentication into the Azure Portal to start the deployment of the required resources.
+9. If you click Yes, a browser window will pop up requesting authentication into the Azure Portal to start the deployment of the required resources.
 
 ![Azure Portal Authentication](./images/AzurePortalAuthentication.png)
 
-1. Wait for the deployment process to complete.
+10. Wait for the deployment process to complete.
 
 ![Sucessful installation](./images/SucessfulInstallation.png)
 
@@ -213,27 +213,27 @@ These changes only affect the current session so do not need to be reverted afte
 
 ![Azure Portal Search Azure Function App](./images/AzurePortalSearch.png)
 
-1. In the Function App's overview page, click on the **Functions** in the Functions section on the left-hand side.
+2. In the Function App's overview page, click on the **Functions** in the Functions section on the left-hand side.
 
 ![Azure Portal Azure Function App Menu](./images/AzureFunctionAppMenu.png)
 
-1. Select the Timer function named **"timer_Python_LogAnalytics"** (Note: It can take up to a minute after running the deployment script for the functions to appear in this screen).
+3. Select the Timer function named **"timer_Python_LogAnalytics"** (Note: It can take up to a minute after running the deployment script for the functions to appear in this screen).
 
 ![Azure Portal Azure Function App Fuctions](./images/AzureFunctionAppFunctions.png)
 
-1. Click on the **Monitor** in the Developer section.
+4. Click on the **Monitor** in the Developer section.
 
 ![Azure Portal Azure Function App Monitor](./images/AzureFunctionAppMonitor.png)
 
-1. Click on **Logs** and wait for the logs to update (it might take a few minutes).
+5. Click on **Logs** and wait for the logs to update (it might take a few minutes).
 
 ![Azure Portal Azure Function App Log](./images/AzureFunctionAppMonitorLog.png)
 
-1. To authenticate the Azure Function, click on the following URL <https://microsoft.com/devicelogin> add the code shown in the **logs** and log in using a user credential that has RBAC permission in the MDE environment.
+6. To authenticate the Azure Function, click on the following URL <https://microsoft.com/devicelogin> add the code shown in the **logs** and log in using a user credential that has RBAC permission in the MDE environment.
 
 ![Azure Portal Azure Function Authentication](./images/AzureFunctionAppAuthentication.png)
 
-1. Once authenticated, the Azure Function will start to send logging information to the Monitor page on every 5 minute mark, and also send corresponding Heartbeat events to the Log Analytics Workspace unless this option is turned off in the App Configuration Settings.
+7. Once authenticated, the Azure Function will start to send logging information to the Monitor page on every 5 minute mark, and also send corresponding Heartbeat events to the Log Analytics Workspace unless this option is turned off in the App Configuration Settings.
 
 ## Streaming to Event Hub
 
@@ -243,13 +243,13 @@ To enable this, the following steps are required:
 
 1. Create an Event Hub Namespace in the Azure Portal.
 
-1. Create an Event Hub in the Event Hub Namespace.
+2. Create an Event Hub in the Event Hub Namespace.
 
-1. Create a Shared Access Policy in the Event Hub Namespace, or the Event Hub itself, with **Send** permissions.
+3. Create a Shared Access Policy in the Event Hub Namespace, or the Event Hub itself, with **Send** permissions.
 
 ![Shared Access Policy](./images/Event-Hub-Access-Keys.png)
 
-1. Add the following details to the deployment script variables:
+4. Add the following details to the deployment script variables:
 
 | Variable Name | Value |
 |---------------|-------|
@@ -261,11 +261,11 @@ Once the Function App is deployed and running, it is possible to monitor the dat
 
 1. In the Azure Portal, navigate to the Event Hub Namespace and select the Event Hub.
 
-1. Click on **Process Data** in the **Overview** section and select the Process your Event Hub data using Stream Analytics Query Language:
+2. Click on **Process Data** in the **Overview** section and select the Process your Event Hub data using Stream Analytics Query Language:
 
 ![Event Hub Process Data](./images/Event-Hub-Process-Data.png)
 
-1. Accept the default query and click Run:
+3. Accept the default query and click Run:
 
 ![Event Hub Stream Analytics Query](./images/Event-Hub-Query-Data.png)
 
