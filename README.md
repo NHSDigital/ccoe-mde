@@ -19,6 +19,7 @@ This results in a fairly simple architectural model being required and has the a
     - [Function App](#function-app)
     - [App Settings](#app-settings)
     - [Log Analytics Workspace](#log-analytics-workspace)
+    - [Event Hub](#event-hub)
 - [Deployment Guidelines](#deployment-guidelines)
   - [Prerequisites](#prerequisites)
   - [Deploy Code](#deploy-code)
@@ -87,6 +88,10 @@ A number of App Settings are used in the function app to store run-time variable
 Used to store the alerts extracted from MDE, unless an Event Hub is specified instead. Also used to capture Heartbeat messages from the function app, unless this option is turned off in the [App Settings](#app-settings).
 
 This Workspace must be created in advance of running the deployment and can be a pre-existing workspace.
+
+### Event Hub
+
+Used optionally to stream the Alerts to instead of sending them to a Log Analytics Workspace. If this option is selected then the Event Hub must be created in advance of running the deployment and can be a pre-existing Event Hub.
 
 ## Deployment Guidelines
 
@@ -178,6 +183,8 @@ To Save and Exit the file in Cloud Shell, press **Ctrl+S** and then **Ctrl+Q**, 
 
 1. You will be asked if you want to refresh your Azure login - click **No** if running in the Cloud Shell, and click **Yes** or **No** as required if running locally.
 
+![Azure Login Refresh](./images/Azure-CloudShell-ConfirmAzLogin.png)
+
 1. If you click Yes, a browser window will pop up requesting authentication into the Azure Portal to start the deployment of the required resources.
 
 ![Azure Portal Authentication](./images/AzurePortalAuthentication.png)
@@ -186,17 +193,19 @@ To Save and Exit the file in Cloud Shell, press **Ctrl+S** and then **Ctrl+Q**, 
 
 ![Sucessful installation](./images/SucessfulInstallation.png)
 
-> :heavy_exclamation_mark: Note if the following error is displayed, it is most likely that the version of the Az.Websites PowerShell module is not compatible with the version of PowerShell being used. To resolve this, run the following command in the Cloud Shell to install a known good version of the module, and then run the script again:
+> :heavy_exclamation_mark: Note if the following error is displayed, it is most likely that the version of the Az.Websites PowerShell module is not compatible with the version of PowerShell being used. 
+
+![Publish-AzWebApp Error](./images/Publish-AzWebApp-Error.png)
+
+To resolve this, run the following command in the Cloud Shell to install a known good version of the module, and then run the script again:
 
 ```shell
-  Install-Module -Name Az.Websites -RequiredVersion 2.15.0
+    Remove-Module -Name Az.Websites -ErrorAction SilentlyContinue
+    Install-Module -Name Az.Websites -RequiredVersion 2.15.0 -Force -ErrorAction SilentlyContinue
+    Import-module -Name Az.Websites -RequiredVersion 2.15.0 -Force
 ```
 
-Once the script has completed successfully, the module can be removed again using the following command:
-
-```shell
-  Uninstall-Module -Name Az.Websites -RequiredVersion 2.15.0
-```
+These changes only affect the current session so do not need to be reverted after the script has run.
 
 ## Azure Function App Authentication
 
@@ -225,6 +234,40 @@ Once the script has completed successfully, the module can be removed again usin
 ![Azure Portal Azure Function Authentication](./images/AzureFunctionAppAuthentication.png)
 
 1. Once authenticated, the Azure Function will start to send logging information to the Monitor page on every 5 minute mark, and also send corresponding Heartbeat events to the Log Analytics Workspace unless this option is turned off in the App Configuration Settings.
+
+## Streaming to Event Hub
+
+By default the deployment script detailed above is configured to send the Defender for Endpoint alerts to a Log Analytics Workspace. However, it is also possible to stream them to an Event Hub.
+
+To enable this, the following steps are required:
+
+1. Create an Event Hub Namespace in the Azure Portal.
+
+1. Create an Event Hub in the Event Hub Namespace.
+
+1. Create a Shared Access Policy in the Event Hub Namespace, or the Event Hub itself, with **Send** permissions.
+
+![Shared Access Policy](./images/Event-Hub-Access-Keys.png)
+
+1. Add the following details to the deployment script variables:
+
+| Variable Name | Value |
+|---------------|-------|
+| EventHubNamespace | The name of the Event Hub Namespace |
+| EventHubName | The name of the Event Hub |
+| EventHubAccessKeyName | The name of the Shared Access Policy |
+
+Once the Function App is deployed and running, it is possible to monitor the data received by the Event Hub as follows:
+
+1. In the Azure Portal, navigate to the Event Hub Namespace and select the Event Hub.
+
+1. Click on **Process Data** in the **Overview** section and select the Process your Event Hub data using Stream Analytics Query Language:
+
+![Event Hub Process Data](./images/Event-Hub-Process-Data.png)
+
+1. Accept the default query and click Run:
+
+![Event Hub Stream Analytics Query](./images/Event-Hub-Query-Data.png)
 
 ## Deployment Checklist
 
