@@ -115,13 +115,15 @@ The following variables relating to the Identity and Trust tenant environments n
 |$FunctionConfigMDETenantId |Add Central MDE Tenant ID|
 |$FunctionConfigMDEClientAppId | Add Central MDE Client ID |
 |$FunctionConfigAlertTargetType | Set this to either LogAnalytics or EventHub |
-|$AlertTargetResourceGroupName| Resource Group name where the target Log Analytics Workspace or Event Hub reside in your local tenant|
+|$LogAnalyticsResourceGroupName| Resource Group name where the target Log Analytics Workspace resides in your local tenant|
 |$LogAnalyticsWorkspaceName | Log Analytics Workspace name used to look up workspace id and key if workspace is to be used as the alert target or for sending Heartbeat events to|
+|$EventHubResourceGroupName | Resource Group name where the target Event Hub resides in your local tenant|
 |$FunctionConfigEventHubNamespace | Event Hub Namespace name if Event Hub is to be used as the alert target, otherwise blank|
+|$FunctionConfigEventHubName | Event Hub name if Event Hub is to be used as the alert target, otherwise blank|
 |FunctionConfigEventHubAccessKeyName | Event Hub Access Key Name - can be namespace root or hub-specific - key will be looked up by the script|
 |$randomIdentifier | Random number appended to resources created by this script to provide uniqueness|
 |$location | "uksouth"|
-|$resourceGroup | "azure-functions-rg-$randomIdentifier" - modify as required|
+|$functionAppResourceGroup | "azure-functions-rg-$randomIdentifier" - modify as required|
 |$tag | @{application  "function-app-consumption-python" } - modify as required|
 |$storage | "funcappsaccount$randomIdentifier" - modify as required|
 |$functionApp | "serverless-python-function-$randomIdentifier" - modify as required|
