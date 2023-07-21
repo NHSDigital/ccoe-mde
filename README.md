@@ -120,7 +120,7 @@ The following variables relating to the Identity and Trust tenant environments n
 |$EventHubResourceGroupName | Resource Group name where the target Event Hub resides in your local tenant|
 |$FunctionConfigEventHubNamespace | Event Hub Namespace name if Event Hub is to be used as the alert target, otherwise blank|
 |$FunctionConfigEventHubName | Event Hub name if Event Hub is to be used as the alert target, otherwise blank|
-|FunctionConfigEventHubAccessKeyName | Event Hub Access Key Name - can be namespace root or hub-specific - key will be looked up by the script|
+|$FunctionConfigEventHubAccessKeyName | Event Hub Access Key Name - can be namespace root or hub-specific - key will be looked up by the script|
 |$randomIdentifier | Random number appended to resources created by this script to provide uniqueness|
 |$location | "uksouth"|
 |$functionAppResourceGroup | "azure-functions-rg-$randomIdentifier" - modify as required|
