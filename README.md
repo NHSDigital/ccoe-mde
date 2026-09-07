@@ -4,7 +4,7 @@
 
 ## Overview of Solution
 
-A centralised identity management team within NHSE CSOC is responsible for managing the Active Directory that devices and users across many distributed NHS organisations (e.g., Trusts) authenticate users and register end-user devices against.
+A centralised identity management team within NHSE CSOC is responsible for managing the Active Directory that devices and users across many distributed NHS organisations (e.g., Trusts) authenticate users and register end-user devices against. 
 
 Microsoft Defender for Endpoint (MDE) is enabled within the synchronised Azure Active Directory (AAD) tenant to detect security events originating within these devices.
 
