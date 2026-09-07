@@ -6,6 +6,7 @@
 
 A centralised identity management team within NHSE CSOC is responsible for managing the Active Directory that devices and users across many distributed NHS organisations (e.g., Trusts) authenticate users and register end-user devices against.
 
+ 
 Microsoft Defender for Endpoint (MDE) is enabled within the synchronised Azure Active Directory (AAD) tenant to detect security events originating within these devices.
 
 The CSOC team is providing here a solution that runs in an Azure Function App to call the Microsoft ATP APIs to extract alert data from the central tenant on a per-trust basis so that the alerts can be imported into local security tooling of each trust.
