@@ -1,5 +1,7 @@
 # Azure Function App Proof of Concept
 
+> **Archived:** This repository is provided as-is and is no longer actively maintained. No further improvements or new features are planned.
+
 ## Overview of Solution
 
 A centralised identity management team within NHSE CSOC is responsible for managing the Active Directory that devices and users across many distributed NHS organisations (e.g., Trusts) authenticate users and register end-user devices against.
