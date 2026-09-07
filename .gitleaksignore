@@ -1,0 +1,2 @@
+# Add only reviewed Gitleaks fingerprints for confirmed false positives.
+# Do not ignore secret-looking variable names or whole files without review.

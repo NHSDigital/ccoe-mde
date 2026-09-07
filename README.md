@@ -98,6 +98,24 @@ Used optionally to stream the Alerts to instead of sending them to a Log Analyti
 
 ## Deployment Guidelines
 
+### Secret Scanning
+
+This repository uses Gitleaks to detect hard-coded secrets in committed files and Git history. The GitHub Actions workflow runs a full-history scan on pushes and pull requests.
+
+To scan all commits locally, install Gitleaks or Docker and run:
+
+```shell
+ALL_FILES=true ./scripts/githooks/scan-secrets.sh
+```
+
+For staged changes, install `pre-commit` and run:
+
+```shell
+pre-commit run --all-files --config scripts/config/pre-commit.yaml
+```
+
+Do not commit `local.settings.json`, `.env` files, certificates, or private keys. If a real secret is found, revoke or rotate it immediately before removing it from the repository history.
+
 ### Prerequisites
 
 1. Register **Microsoft.Web** resource provider, see: [Register resource provider](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types#azure-portal)
