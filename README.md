@@ -1,8 +1,10 @@
 # Azure Function App Proof of Concept
 
+> **Archived:** This repository is provided as-is and is no longer actively maintained. No further improvements or new features are planned.
+
 ## Overview of Solution
 
-A centralised identity management team within NHSE CSOC is responsible for managing the Active Directory that devices and users across many distributed NHS organisations (e.g., Trusts) authenticate users and register end-user devices against.
+A centralised identity management team within NHSE CSOC is responsible for managing the Active Directory that devices and users across many distributed NHS organisations (e.g., Trusts) authenticate users and register end-user devices against. 
 
 Microsoft Defender for Endpoint (MDE) is enabled within the synchronised Azure Active Directory (AAD) tenant to detect security events originating within these devices.
 
@@ -97,6 +99,24 @@ Used to store the alerts extracted from MDE, unless an Event Hub is specified in
 Used optionally to stream the Alerts to instead of sending them to a Log Analytics Workspace. If this option is selected then the Event Hub must be created in advance of running the deployment and can be a pre-existing Event Hub.
 
 ## Deployment Guidelines
+
+### Secret Scanning
+
+This repository uses Gitleaks to detect hard-coded secrets in committed files and Git history. The GitHub Actions workflow runs a full-history scan on pushes and pull requests.
+
+To scan all commits locally, install Gitleaks or Docker and run:
+
+```shell
+ALL_FILES=true ./scripts/githooks/scan-secrets.sh
+```
+
+For staged changes, install `pre-commit` and run:
+
+```shell
+pre-commit run --all-files --config scripts/config/pre-commit.yaml
+```
+
+Do not commit `local.settings.json`, `.env` files, certificates, or private keys. If a real secret is found, revoke or rotate it immediately before removing it from the repository history.
 
 ### Prerequisites
 

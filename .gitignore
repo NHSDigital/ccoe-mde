@@ -1,0 +1,10 @@
+# Local Azure Functions settings and environment files
+local.settings.json
+.env
+.env.*
+
+# Local credentials and generated deployment artifacts
+*.pem
+*.key
+*.pfx
+*.zip
