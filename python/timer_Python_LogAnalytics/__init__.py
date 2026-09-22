@@ -33,10 +33,14 @@ use_last_saved_time = bool(os.environ['FunctionConfigUse_last_saved_time'])
 alert_target_type = os.environ['FunctionConfigAlertTargetType']
 
 
+def utc_now() -> datetime.datetime:
+    return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
+
 # Main function called by timer uses stateful access token to preserve token values between each function invocation
 async def main(mytimer: func.TimerRequest, loganalyticsrefreshtoken: str) -> None:
 
-    startTime = datetime.datetime.utcnow()
+    startTime = utc_now()
     do_logging('info', 5, 'Starting timer-Python-LogAnalytics')
 
     if mytimer.past_due:
@@ -98,7 +102,7 @@ async def main(mytimer: func.TimerRequest, loganalyticsrefreshtoken: str) -> Non
     create_heartbeat(heartbeatMessage)
 
     do_logging('info', 2, f'Processed {successes} out of {len(records)} new alerts.')
-    do_logging('info', 3, f'Python timer trigger function completed at {datetime.datetime.utcnow()}')
+    do_logging('info', 3, f'Python timer trigger function completed at {utc_now()}')
 
 
 async def get_access_token(loganalyticsrefreshtoken: str) -> str:
@@ -528,7 +532,7 @@ def create_heartbeat(message):
 
     do_logging('info', 2, 'Creating Heartbeat message...')
 
-    heartbeatTime = str(datetime.datetime.utcnow()).replace(' ', 'T')
+    heartbeatTime = str(utc_now()).replace(' ', 'T')
     log_analytics_table = 'Heartbeat'
 
     api_resource_schema = f'{api_resource}/api/$metadata#Alerts'
@@ -579,7 +583,7 @@ def upload_blob(blobData):
     container_name = os.environ['FunctionConfigStorageContainer']
     container_client = blob_service_client.get_container_client(container_name)
 
-    blob_name = f"blobData-{str(datetime.datetime.utcnow()).replace(' ', 'T')}.json"
+    blob_name = f"blobData-{str(utc_now()).replace(' ', 'T')}.json"
     blob_client = container_client.get_blob_client(blob_name)
 
     blob_client.upload_blob(blobData, overwrite=True)
@@ -600,11 +604,11 @@ def do_logging(logging_class, logging_level, msg):
 
     if logging_level >= config_logging_level:
         if logging_type == 'blob':
-            msg = f'{datetime.datetime.utcnow()}: {log_prefix}: {msg}'
+            msg = f'{utc_now()}: {log_prefix}: {msg}'
             upload_blob(msg)
 
         elif logging_type == 'print':
-            msg = f'{datetime.datetime.utcnow()}: {log_prefix}: {msg}'
+            msg = f'{utc_now()}: {log_prefix}: {msg}'
             print(msg)
 
         else:
