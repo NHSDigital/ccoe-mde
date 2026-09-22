@@ -532,7 +532,7 @@ def create_heartbeat(message):
 
     do_logging('info', 2, 'Creating Heartbeat message...')
 
-    heartbeatTime = str(utc_now()).replace(' ', 'T')
+    heartbeat_time = str(utc_now()).replace(' ', 'T')
     log_analytics_table = 'Heartbeat'
 
     api_resource_schema = f'{api_resource}/api/$metadata#Alerts'
@@ -545,10 +545,10 @@ def create_heartbeat(message):
                     'title': f'Python LogAnalytics {log_analytics_table}',
                     'severity': 'Low',
                     'status': 'Resolved',
-                    'alertCreationTime': heartbeatTime,
-                    'firstEventTime': heartbeatTime,
-                    'lastEventTime': heartbeatTime,
-                    'resolvedTime': heartbeatTime,
+                    'alertCreationTime': heartbeat_time,
+                    'firstEventTime': heartbeat_time,
+                    'lastEventTime': heartbeat_time,
+                    'resolvedTime': heartbeat_time,
                     'description': message
                 }
             ]
